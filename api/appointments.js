@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     const { data, error } = await supabase
       .from("appointments")
-      .select("id, title, date, status") // include what you need
+      .select("*") // include what you need
       .limit(20);
 
     if (error) {
