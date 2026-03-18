@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     }
 
     // Built-in fetch in Vercel
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=id&limit=1`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/appointments?select=id&limit=1`, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`
