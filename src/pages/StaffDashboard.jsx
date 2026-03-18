@@ -27,32 +27,48 @@ export default function StaffDashboard() {
   const [dayModal, setDayModal] = useState(null); // { day, apts }
 
   const fetchAppointments = async () => {
-    setLoading(true);
-    const res = await base44.functions.invoke("getAppointments", {});
-    setAppointments(res.data?.appointments || []);
-    setLoading(false);
-  };
+  setLoading(true);
 
-  useEffect(() => { fetchAppointments(); }, []);
+  try {
+    const res = await fetch("/api/appointments");
+    const data = await res.json();
+    setAppointments(data.appointments || []);
+  } catch (err) {
+    console.error("Error fetching appointments:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchAppointments();
+}, []);
 
   const handleUpdateStatus = async (id, status) => {
-    setUpdating(id);
-    await base44.functions.invoke("updateAppointmentStatus", { id, status });
-    setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status } : a));
-    toast.success("Status updated");
+  setUpdating(id);
 
-    const apt = appointments.find((a) => a.id === id);
-    if (apt?.email) {
-      base44.functions.invoke("sendStatusUpdateEmail", {
-        patient_name: apt.name,
-        email: apt.email,
-        status,
-        department: apt.department,
-        date: apt.date,
-      });
-    }
-    setUpdating(null);
-  };
+  try {
+    await fetch("/api/update-status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id, status }),
+    });
+
+    // update UI instantly
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status } : a))
+    );
+
+    toast.success("Status updated");
+  } catch (err) {
+    console.error("Update failed:", err);
+    toast.error("Failed to update status");
+  }
+
+  setUpdating(null);
+};
 
   const filtered = filter === "All"
     ? appointments
